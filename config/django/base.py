@@ -18,6 +18,7 @@ LOCAL_APPS = [
     'social_media_api.common.apps.CommonConfig',
     'social_media_api.users.apps.UsersConfig',
     'social_media_api.authentication.apps.AuthenticationConfig',
+    'social_media_api.blog.apps.BlogConfig'
 ]
 
 THIRD_PARTY_APPS = [
