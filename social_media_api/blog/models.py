@@ -1,6 +1,8 @@
+import uuid
 from django.db import models
 from social_media_api.common.models import BaseModel
 from django.contrib.auth import get_user_model
+
 
 User = get_user_model()
 
@@ -17,6 +19,14 @@ class Post(BaseModel):
 
 
 class Subscribe(BaseModel):
+    uuid = models.UUIDField(default=uuid.uuid4(), editable=False, primary_key=True)
     subscriber = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
     target = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers")
+
+    class Meta:
+        unique_together = ('subscriber', 'target')
+
+    def clean(self):
+        if self.subscriber == self.target:
+            raise ValidationError({"subscriber": ("subscriber cannot be equal to target")})
 
