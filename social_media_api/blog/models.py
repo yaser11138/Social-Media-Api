@@ -1,4 +1,5 @@
 import uuid
+from django.core.exceptions import ValidationError
 from django.db import models
 from social_media_api.common.models import BaseModel
 from django.contrib.auth import get_user_model
