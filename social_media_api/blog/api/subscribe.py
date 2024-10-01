@@ -4,14 +4,18 @@ from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
-from drf_spectacular.views import extend_schema
+from drf_spectacular.views import extend_schema, OpenApiParameter
 from ..models import Subscribe
 from ..selectors.subscribe import get_subscribe_detail, get_followers, get_followings
 from ..services.subscribe import create_subscribe, delete_subscribe
 from social_media_api.api.mixins import ApiAuthMixin
+from social_media_api.api.pagination import LimitOffsetPagination, get_paginated_response_context
 
 
 class SubscribeApi(ApiAuthMixin, APIView):
+
+    class Pagination(LimitOffsetPagination):
+        limit = 10
 
     class SubscribeInputSerializer(serializers.Serializer):
         email = serializers.EmailField()
@@ -50,17 +54,21 @@ class SubscribeApi(ApiAuthMixin, APIView):
 
         return Response(data=self.SubscribeOutputSerializer(instance=subscribe, context={"request": request}).data, status=status.HTTP_201_CREATED)
 
-    @extend_schema(responses=SubscribeOutputSerializer)
+    @extend_schema(responses=SubscribeOutputSerializer, parameters=[OpenApiParameter(name="subscription_type")])
     def get(self, request):
-        users_following = get_followings(user=request.user)
-        user_followers = get_followers(user=request.user)
-        users_following_data = self.SubscribeOutputSerializer(instance=users_following, many=True, context={"request": request}).data
-        user_followers_data = self.SubscribeOutputSerializer(instance=user_followers, many=True, context={"request": request}).data
-        subscribe_data = {
-            "users_following": users_following_data,
-            "user_followers": user_followers_data
-        }
-        return Response(data=subscribe_data,status=status.HTTP_200_OK)
+        subscription_type = request.GET.get("subscription_type", "following")
+        if subscription_type == "following":
+            subscriptions = get_followings(user=request.user)
+        elif subscription_type == "followers":
+            subscriptions = get_followers(user=request.user)
+
+        return get_paginated_response_context(
+            pagination_class=self.Pagination,
+            serializer_class=self.SubscribeOutputSerializer,
+            queryset=subscriptions,
+            request=request,
+            view=self
+        )
 
 
 class SubscribeDetailApi(ApiAuthMixin, APIView):
