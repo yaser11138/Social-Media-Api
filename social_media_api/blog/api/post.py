@@ -26,12 +26,11 @@ class PostDetailApi(ApiAuthMixin,APIView):
         responses=PostDetailOutputSerializer,
     )
     def get(self, request, slug):
-        post = get_post(slug=slug)
-        if not post:
-            return Response(data={"message": "Post Not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        return Response(data=self.PostDetailOutputSerializer(instance=post), status=status.HTTP_200_OK)
-
+        try:
+            post = get_post(slug=slug)
+            return Response(data=self.PostDetailOutputSerializer(instance=post), status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(data={"message": f"Post Not found{e}"}, status=status.HTTP_404_NOT_FOUND)
 
 class PostApi(ApiAuthMixin, APIView):
 

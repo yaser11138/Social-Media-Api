@@ -2,11 +2,8 @@ from ..models import Post
 from ..filter import PostFilter
 
 
-def get_post(*,slug):
-    try:
-        return Post.objects.get(slug=slug)
-    except Post.DoesNotExist:
-        return None
+def get_post(*, slug):
+    return Post.objects.get(slug=slug)
 
 
 def post_list(*, filters, user):
